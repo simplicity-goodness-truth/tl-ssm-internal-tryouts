@@ -1,0 +1,167 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_FUGR" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <AREAT>bgRFC demo function group</AREAT>
+   <INCLUDES>
+    <SOBJ_NAME>LZBGRFC_DEMOTOP</SOBJ_NAME>
+    <SOBJ_NAME>SAPLZBGRFC_DEMO</SOBJ_NAME>
+   </INCLUDES>
+   <FUNCTIONS>
+    <item>
+     <FUNCNAME>ZBGRFC_ALERT_DATA_READ</FUNCNAME>
+     <REMOTE_CALL>R</REMOTE_CALL>
+     <SHORT_TEXT>bgRFC alerts data read</SHORT_TEXT>
+     <IMPORT>
+      <RSIMP>
+       <PARAMETER>IT_ALERTS_LIST</PARAMETER>
+       <OPTIONAL>X</OPTIONAL>
+       <TYP>ZMAI_TT_ALERTS_LIST</TYP>
+      </RSIMP>
+     </IMPORT>
+     <DOCUMENTATION>
+      <RSFDO>
+       <PARAMETER>IT_ALERTS_LIST</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>MAI alerts list</STEXT>
+      </RSFDO>
+     </DOCUMENTATION>
+    </item>
+    <item>
+     <FUNCNAME>ZBGRFC_DEMO_ALERT_DATA</FUNCNAME>
+     <SHORT_TEXT>bgRFC demo alerts data collection</SHORT_TEXT>
+    </item>
+    <item>
+     <FUNCNAME>ZBGRFC_DEMO_INSERT_RECORDS</FUNCNAME>
+     <REMOTE_CALL>R</REMOTE_CALL>
+     <SHORT_TEXT>bgRFC demo insertion of records</SHORT_TEXT>
+    </item>
+    <item>
+     <FUNCNAME>ZBGRFC_UNIT</FUNCNAME>
+     <REMOTE_CALL>R</REMOTE_CALL>
+     <SHORT_TEXT>bgRFC demo unit</SHORT_TEXT>
+     <IMPORT>
+      <RSIMP>
+       <PARAMETER>IP_NUMBER</PARAMETER>
+       <TYP>INT4</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>IP_FINISHED</PARAMETER>
+       <OPTIONAL>X</OPTIONAL>
+       <TYP>CHAR1</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>IP_QUEUE</PARAMETER>
+       <OPTIONAL>X</OPTIONAL>
+       <TYP>CHAR40</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>IP_UNIT_ID</PARAMETER>
+       <OPTIONAL>X</OPTIONAL>
+       <TYP>BGRFC_UNIT_ID</TYP>
+      </RSIMP>
+     </IMPORT>
+     <EXPORT>
+      <RSEXP>
+       <PARAMETER>EP_RESULT</PARAMETER>
+       <TYP>INT4</TYP>
+      </RSEXP>
+     </EXPORT>
+     <DOCUMENTATION>
+      <RSFDO>
+       <PARAMETER>IP_NUMBER</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Natural number</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>IP_FINISHED</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Single-Character Flag</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>IP_QUEUE</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Character field, length 64</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>IP_UNIT_ID</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>ID of Unit in Background RFC</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>EP_RESULT</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Natural number</STEXT>
+      </RSFDO>
+     </DOCUMENTATION>
+    </item>
+    <item>
+     <FUNCNAME>ZFM_INT616_ORDNEW</FUNCNAME>
+     <REMOTE_CALL>R</REMOTE_CALL>
+     <SHORT_TEXT>Создание заказа в SAP CRM по интерфейсу 237</SHORT_TEXT>
+     <IMPORT>
+      <RSIMP>
+       <PARAMETER>IV_BGRFC_UNIT_ID</PARAMETER>
+       <OPTIONAL>X</OPTIONAL>
+       <TYP>BGRFC_UNIT_ID</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>IV_BGRFC_MAX_COUNT</PARAMETER>
+       <OPTIONAL>X</OPTIONAL>
+       <TYP>INT4</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>IV_BGRFC_DELAY</PARAMETER>
+       <OPTIONAL>X</OPTIONAL>
+       <TYP>INT4</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>IS_ORDER</PARAMETER>
+       <OPTIONAL>X</OPTIONAL>
+       <TYP>ZINT616_TS_ELITE_ORDER</TYP>
+      </RSIMP>
+     </IMPORT>
+     <DOCUMENTATION>
+      <RSFDO>
+       <PARAMETER>IV_BGRFC_UNIT_ID</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>ID of Unit in Background RFC</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>IV_BGRFC_MAX_COUNT</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Natural number</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>IV_BGRFC_DELAY</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Natural number</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>IS_ORDER</PARAMETER>
+       <KIND>P</KIND>
+      </RSFDO>
+     </DOCUMENTATION>
+    </item>
+    <item>
+     <FUNCNAME>ZQRFC_ALERT_DATA_READ</FUNCNAME>
+     <REMOTE_CALL>R</REMOTE_CALL>
+     <SHORT_TEXT>qRFC alerts data read</SHORT_TEXT>
+     <IMPORT>
+      <RSIMP>
+       <PARAMETER>IT_ALERTS_LIST</PARAMETER>
+       <OPTIONAL>X</OPTIONAL>
+       <TYP>ZMAI_TT_ALERTS_LIST</TYP>
+      </RSIMP>
+     </IMPORT>
+     <DOCUMENTATION>
+      <RSFDO>
+       <PARAMETER>IT_ALERTS_LIST</PARAMETER>
+       <KIND>P</KIND>
+      </RSFDO>
+     </DOCUMENTATION>
+    </item>
+   </FUNCTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>
