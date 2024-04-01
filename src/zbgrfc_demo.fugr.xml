@@ -144,6 +144,54 @@
      </DOCUMENTATION>
     </item>
     <item>
+     <FUNCNAME>ZFM_INT616_ORDNEW_SIMPLE</FUNCNAME>
+     <REMOTE_CALL>R</REMOTE_CALL>
+     <SHORT_TEXT>Создание заказа в SAP CRM по интерфейсу 237</SHORT_TEXT>
+     <IMPORT>
+      <RSIMP>
+       <PARAMETER>IV_BGRFC_UNIT_ID</PARAMETER>
+       <OPTIONAL>X</OPTIONAL>
+       <TYP>BGRFC_UNIT_ID</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>IV_BGRFC_MAX_COUNT</PARAMETER>
+       <OPTIONAL>X</OPTIONAL>
+       <TYP>INT4</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>IV_BGRFC_DELAY</PARAMETER>
+       <OPTIONAL>X</OPTIONAL>
+       <TYP>INT4</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>IS_ORDER</PARAMETER>
+       <OPTIONAL>X</OPTIONAL>
+       <TYP>ZINT616_TS_ELITE_ORDER</TYP>
+      </RSIMP>
+     </IMPORT>
+     <DOCUMENTATION>
+      <RSFDO>
+       <PARAMETER>IV_BGRFC_UNIT_ID</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>ID of Unit in Background RFC</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>IV_BGRFC_MAX_COUNT</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Natural number</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>IV_BGRFC_DELAY</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Natural number</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>IS_ORDER</PARAMETER>
+       <KIND>P</KIND>
+      </RSFDO>
+     </DOCUMENTATION>
+    </item>
+    <item>
      <FUNCNAME>ZQRFC_ALERT_DATA_READ</FUNCNAME>
      <REMOTE_CALL>R</REMOTE_CALL>
      <SHORT_TEXT>qRFC alerts data read</SHORT_TEXT>

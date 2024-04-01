@@ -6,6 +6,6 @@ interface zws_ii_in_t237_orders_a
 
   methods in_t237_orders_a
     importing
-      is_order type zint616_ts_elite_order.
+      is_order type zint616_ts_elite_order optional.
 
 endinterface.
