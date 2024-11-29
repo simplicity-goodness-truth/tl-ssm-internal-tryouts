@@ -1,4 +1,4 @@
-FUNCTION ZFM_INT616_ORDNEW_SIMPLE.
+function zfm_int616_ordnew_simple.
 *"----------------------------------------------------------------------
 *"*"Local Interface:
 *"  IMPORTING
@@ -7,52 +7,58 @@ FUNCTION ZFM_INT616_ORDNEW_SIMPLE.
 *"     VALUE(IV_BGRFC_DELAY) TYPE  INT4 OPTIONAL
 *"     VALUE(IS_ORDER) TYPE  ZINT616_TS_ELITE_ORDER OPTIONAL
 *"----------------------------------------------------------------------
-*  data: lv_order_was_created type abap_bool,
-*        lo_int616_log        type ref to zcl_int616_log.
-*
-*  lv_order_was_created = zcl_int616_orders=>process( is_order ).
-*
-*  lo_int616_log = new zcl_int616_log( ).
-*
-*  lo_int616_log->add_record( |ZFM_INT616_ORDNEW: из класса ZCL_INT616_ORDERS получен статус создания заказа = | && |{ lv_order_was_created }| ).
-*
-*  " Перезапуск выполнения bgRFC если заказ не был создан
-*
-*  if lv_order_was_created <> abap_true.
-*
-*    clear lo_int616_log.
-*
-*    lo_int616_log = new zcl_int616_log( ).
-*
-*    lo_int616_log->add_record( |ZFM_INT616_ORDNEW: начинаем перезапуск блока bgRFC c unit id = | && |{ iv_bgrfc_unit_id }| ).
-*
+  data: lv_order_was_created type abap_bool,
+        lo_int616_log        type ref to zcl_int616_log.
+
+  lv_order_was_created = zcl_int616_orders=>process( is_order ).
+
+  lo_int616_log = new zcl_int616_log( ).
+
+  lo_int616_log->add_record( |ZFM_INT616_ORDNEW: из класса ZCL_INT616_ORDERS получен статус создания заказа = | && |{ lv_order_was_created }| ).
+
+  " Перезапуск выполнения bgRFC если заказ не был создан
+
+  if lv_order_was_created <> abap_true.
+
+    clear lo_int616_log.
+
+    lo_int616_log = new zcl_int616_log( ).
+
+    lo_int616_log->add_record( |ZFM_INT616_ORDNEW: начинаем перезапуск блока bgRFC c unit id = | && |{ iv_bgrfc_unit_id }| ).
+
 *    perform retry_bgrfc
 *        using iv_bgrfc_unit_id iv_bgrfc_max_count iv_bgrfc_delay.
-*
-*  endif.
-*
-*
-*  if lv_order_was_created = abap_true or iv_bgrfc_max_count = iv_bgrfc_delay.
-*
-*    clear lo_int616_log.
-*
-*    lo_int616_log = new zcl_int616_log( ).
-*
-*    lo_int616_log->add_record( |ZFM_INT616_ORDNEW: выполение завершено для unit id = | && |{ iv_bgrfc_unit_id }| ).
-*
-*    if iv_bgrfc_max_count = iv_bgrfc_delay.
-*
-*      clear lo_int616_log.
-*
-*      lo_int616_log = new zcl_int616_log( ).
-*
-*      lo_int616_log->add_record( |ZFM_INT616_ORDNEW: превышено количество допустимых попыток| ).
-*
-*    endif.
-*
-*    " Отправить статус создания заказа в системе SAP CRM в систему "Элита"
-*
-*  endif.
+
+    data lo_bgrfc_retry_control type ref to zif_bgrfc_retry_control.
+
+    lo_bgrfc_retry_control = new zcl_bgrfc_retry_control( ip_bgrfc_unit_id = iv_bgrfc_unit_id ip_bgrfc_max_count = iv_bgrfc_max_count ip_bgrfc_delay = iv_bgrfc_delay ).
+
+    lo_bgrfc_retry_control->retry_unit( ).
+
+  endif.
+
+
+  if lv_order_was_created = abap_true or iv_bgrfc_max_count = iv_bgrfc_delay.
+
+    clear lo_int616_log.
+
+    lo_int616_log = new zcl_int616_log( ).
+
+    lo_int616_log->add_record( |ZFM_INT616_ORDNEW: выполение завершено для unit id = | && |{ iv_bgrfc_unit_id }| ).
+
+    if iv_bgrfc_max_count = iv_bgrfc_delay.
+
+      clear lo_int616_log.
+
+      lo_int616_log = new zcl_int616_log( ).
+
+      lo_int616_log->add_record( |ZFM_INT616_ORDNEW: превышено количество допустимых попыток| ).
+
+    endif.
+
+    " Отправить статус создания заказа в системе SAP CRM в систему "Элита"
+
+  endif.
 
 
 endfunction.

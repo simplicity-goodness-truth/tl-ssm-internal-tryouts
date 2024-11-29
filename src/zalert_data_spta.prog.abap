@@ -10,11 +10,24 @@ report zalert_data_spta.
 constants: lv_serv_group type spta_rfcgr value 'SPTA'.
 
 data:
-  lt_context       type zcl_alert_data_spta_pack_mgr=>tt_alerts_list,
-  lt_output        type zcl_alert_data_spta_iterator=>tt_alert_data,
-  lo_salv_table    type ref to cl_salv_table,
-  lv_runtime_start type integer,
-  lv_runtime_end   type integer.
+  lt_context           type zcl_alert_data_spta_pack_mgr=>tt_alerts_list,
+  lt_output            type zcl_alert_data_spta_iterator=>tt_alert_data,
+  lo_salv_table        type ref to cl_salv_table,
+  lv_runtime_start     type integer,
+  lv_runtime_end       type integer,
+  lv_log_record_text   type string,
+  mv_app_log_object    type balobj_d,
+  mv_app_log_subobject type balsubobj,
+  lo_log               type ref to zcl_logger_to_app_log.
+
+mv_app_log_object = 'ZDEMO'.
+mv_app_log_subobject = 'ZSPTA'.
+
+lo_log = zcl_logger_to_app_log=>get_instance( ).
+lo_log->set_object_and_subobject(
+      exporting
+        ip_object    =   mv_app_log_object
+        ip_subobject =   mv_app_log_subobject ).
 
 
 
@@ -26,6 +39,12 @@ new zcl_alert_data_spta_pack_mgr( )->get_alerts_list(
     importing
         et_result = lt_context
     ).
+
+
+write: |Starting SPTA processing in a server group | && |{ lv_serv_group }|.
+new-line.
+
+lo_log->zif_logger~info( 'Starting SPTA processing in a server group' ).
 
 " starting SPTA processing
 
@@ -80,17 +99,49 @@ form before_rfc
   data: lv_max_tasks        type integer,
         lv_tab_lines        type integer,
         lv_cnt              type integer,
-        lt_task_algroup_ids type zcl_alert_data_spta_pack_mgr=>tt_alerts_list.
+        lt_task_algroup_ids type zcl_alert_data_spta_pack_mgr=>tt_alerts_list,
+        lo_log              type ref to zcl_logger_to_app_log.
+
+  mv_app_log_object = 'ZDEMO'.
+  mv_app_log_subobject = 'ZSPTA'.
+
+  lo_log = zcl_logger_to_app_log=>get_instance( ).
+  lo_log->set_object_and_subobject(
+        exporting
+          ip_object    =   mv_app_log_object
+          ip_subobject =   mv_app_log_subobject ).
+
 
   statics: sv_package_size type i.
 
+  data lv_dwp_number  type wpno.
+  call function 'TH_GET_OWN_WP_NO'
+    importing
+      wp_no = lv_dwp_number.
+
+
+  write: |Before RFC started in DWP | && |{ lv_dwp_number }| && | with tasks to be processed | && |{ lines( lt_task_algroup_ids ) }|.
+  new-line.
+
+  lo_log->zif_logger~info( |Before RFC started in DWP | && |{ lv_dwp_number }| ).
+
+
   if sv_package_size is initial.
+
+    write: |Starting initial calculation of a package size|.
+    new-line.
 
     " getting maximum of available dialog tasks
 
     perform get_max_tasks changing lv_max_tasks.
 
     lv_tab_lines = lines( p_user_param ).
+
+    write: |Total lines = | && |{ lv_tab_lines }|.
+    new-line.
+
+    write: |Max tasks = | && |{ lv_max_tasks }|.
+    new-line.
 
     " Checking how many alerts will be processed by a single task
     " If there is anything left from a division, then the leftover
@@ -99,61 +150,87 @@ form before_rfc
     sv_package_size = lv_tab_lines / lv_max_tasks.
 
     if sv_package_size = 0.
-      sv_package_size = 1.
-    endif.
-
+    sv_package_size = 1.
   endif.
 
+  write: |Calculated package size = | && |{ sv_package_size }|.
+  new-line.
+
+  write: |Ending initial calculation of a package size|.
+  new-line.
+
+endif.
+
+lv_cnt = 0.
 
 * Putting alerts to tasks
-  loop at p_user_param assigning field-symbol(<fs_algroup_id>).
+loop at p_user_param assigning field-symbol(<fs_algroup_id>).
 
-    if lv_cnt < sv_package_size.
+  if lv_cnt < sv_package_size.
 
-      append <fs_algroup_id> to lt_task_algroup_ids.
+    append <fs_algroup_id> to lt_task_algroup_ids.
 
-      " removing alert group ID, as it has been already added to a task
-      delete p_user_param index 1.
+    " removing alert group ID, as it has been already added to a task
+    delete p_user_param index 1.
 
-      lv_cnt = lv_cnt + 1.
+    lv_cnt = lv_cnt + 1.
 
-    else.
-      exit.
-    endif.
+  else.
+    exit.
+  endif.
 
+endloop.
+
+if <fs_algroup_id> is assigned.
+
+  unassign <fs_algroup_id>.
+
+endif.
+
+if lines( p_user_param ) < sv_package_size.
+
+  write |Arrived to last task case as | && |{ lines( p_user_param ) }| && |<| && |{ sv_package_size }|.
+  new-line.
+
+  write |Starting finalization of the task list from | && |{ lines( lt_task_algroup_ids ) }|.
+  new-line.
+
+  " Last task case
+
+  loop at p_user_param assigning <fs_algroup_id>.
+    append <fs_algroup_id> to lt_task_algroup_ids.
+    delete p_user_param index 1.
   endloop.
 
-  if <fs_algroup_id> is assigned.
+  write |Completing finalization of the task list from | && |{ lines( lt_task_algroup_ids ) }|.
+  new-line.
 
-    unassign <fs_algroup_id>.
+endif.
 
-  endif.
 
-  if lines( p_user_param ) < sv_package_size.
+" Packing the data
 
-    " Last task case
+call function 'SPTA_INDX_PACKAGE_ENCODE'
+  exporting
+    data    = lt_task_algroup_ids
+  importing
+    indxtab = pt_rfcdata.
 
-    loop at p_user_param assigning <fs_algroup_id>.
-      append <fs_algroup_id> to lt_task_algroup_ids.
-      delete p_user_param index 1.
-    endloop.
+if lt_task_algroup_ids is initial.
+  p_before_rfc_exp-start_rfc = space.
 
-  endif.
+  write: |Task group is empty -> skipping|.
+  new-line.
 
-  " Packing the data
+else.
+  p_before_rfc_exp-start_rfc = abap_true.
 
-  call function 'SPTA_INDX_PACKAGE_ENCODE'
-    exporting
-      data    = lt_task_algroup_ids
-    importing
-      indxtab = pt_rfcdata.
+  write: |Passed to execution task group size = | && |{ lines( lt_task_algroup_ids ) }|.
+  new-line.
 
-  if lt_task_algroup_ids is initial.
-    p_before_rfc_exp-start_rfc = space.
-  else.
-    p_before_rfc_exp-start_rfc = abap_true.
-    return.
-  endif.
+
+  return.
+endif.
 
 
 endform.
@@ -245,7 +322,18 @@ form in_rfc
       p_rfcdata     type spta_t_indxtab.                    "#EC CALLED
 
   data: lt_taskdata_in  type zcl_alert_data_spta_pack_mgr=>tt_alerts_list,
-        lt_taskdata_out type zcl_alert_data_spta_iterator=>tt_alert_data.
+        lt_taskdata_out type zcl_alert_data_spta_iterator=>tt_alert_data,
+        lo_log          type ref to zcl_logger_to_app_log.
+
+  mv_app_log_object = 'ZDEMO'.
+  mv_app_log_subobject = 'ZSPTA'.
+
+  lo_log = zcl_logger_to_app_log=>get_instance( ).
+  lo_log->set_object_and_subobject(
+        exporting
+          ip_object    =   mv_app_log_object
+          ip_subobject =   mv_app_log_subobject ).
+
 
   " task processing routine
 
@@ -258,6 +346,9 @@ form in_rfc
       data    = lt_taskdata_in.
 
 * Processing
+
+  lo_log->zif_logger~info( |In RFC items count =  | && |{ lines( lt_taskdata_in ) }| ).
+
 
   perform run using lt_taskdata_in
               changing lt_taskdata_out.
@@ -279,7 +370,13 @@ form run using it_taskdata_in type zcl_alert_data_spta_pack_mgr=>tt_alerts_list
   data: wa_taskdata_out             type zcl_alert_data_spta_iterator=>ty_alert_data,
         lo_alert_data_spta_iterator type ref to zcl_alert_data_spta_iterator.
 
+
+
   loop at it_taskdata_in assigning field-symbol(<fs_taskdata_in>).
+
+    write |Running processing|.
+    new-line.
+
 
 
     lo_alert_data_spta_iterator = new zcl_alert_data_spta_iterator( <fs_taskdata_in> ).
@@ -308,7 +405,31 @@ form after_rfc
 
   data: lt_taskdata type zcl_alert_data_spta_iterator=>tt_alert_data.
 
+  data:
+    lv_tabsize        type sy-tabix,
+    ls_obj_in_process like line of p_objects_in_process,
+    lo_log            type ref to zcl_logger_to_app_log.
+
+  mv_app_log_object = 'ZDEMO'.
+  mv_app_log_subobject = 'ZSPTA'.
+
+  lo_log = zcl_logger_to_app_log=>get_instance( ).
+  lo_log->set_object_and_subobject(
+        exporting
+          ip_object    =   mv_app_log_object
+          ip_subobject =   mv_app_log_subobject ).
+
+
   " this form is called after processing for an every task
+
+  data lv_dwp_number  type wpno.
+  call function 'TH_GET_OWN_WP_NO'
+    importing
+      wp_no = lv_dwp_number.
+
+  write: |After RFC started in DWP | && |{ lv_dwp_number }|.
+  new-line.
+
 
   if p_rfcsubrc is initial.
 
@@ -324,6 +445,52 @@ form after_rfc
 
     exit.
 
+  endif.
+
+
+
+
+* Error handling
+* Note: An incorrect way to handle application specific errors
+*       may lead to an infinite loop in the application, because
+*       if an error is returned to the task manager that object
+*       ist rescheduled in the FAILED_OBJS table and is supposed
+*       to be reprocessed again which may lead to another application
+*       error. The only way out of this behaviour is to set
+*       the flag 'NO_RESUBMISSION_ON_ERROR' to the task manager
+*       and store an error message in the application's error log.
+*       Hoever there are situations where is is appropriate
+*       to not set this flag and thus allow a resubmission of those
+*       objects:
+*       - If one aRFC processes 100 objects and the task fails
+*         return an application_error to the task manager.
+*         Then reprocess each failed_objs one by one. If a task
+*         fails that processes only one object then return
+*         no_error to the task manager and store the error
+*         in the application's log.
+
+  describe table p_objects_in_process lines lv_tabsize.
+  if lv_tabsize = 1.
+* The failed task contained one object
+* Inform task manager not to resubmit objects
+    p_after_rfc_exp-no_resubmission_on_error = 'X'.
+
+* Application specific error handling
+* This is the point to report this error by
+* storing an error message etc...
+* The content of p_rfcmsg should be reported as well
+* in this message as it contains important information
+* about the nature of the error.
+*    READ TABLE p_objects_in_process INDEX 1
+*               INTO ls_obj_in_process.
+*    CLEAR: gt_work_area.
+*    gt_work_area-number = ls_obj_in_process-obj_id.
+*    gt_work_area-string = text-err.
+*    APPEND gt_work_area.
+  else.
+* The failed taks contained several objects.
+* Enable resubmission to process objects individually.
+    clear p_after_rfc_exp-no_resubmission_on_error.
   endif.
 
 endform.                    "after_rfc
